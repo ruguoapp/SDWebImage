@@ -374,11 +374,18 @@ FOUNDATION_STATIC_INLINE NSUInteger SDCacheCostForImage(UIImage *image) {
         NSData *diskData = nil;
         if ([image isGIF]) {
             diskData = [self diskImageDataBySearchingAllPathsForKey:key];
+            
+            // When gif is cached in memory but not in disk, consider it as a cache miss.
+            if (diskData && doneBlock) {
+                doneBlock(image, diskData, SDImageCacheTypeMemory);
+                return nil;
+            }
+        } else {
+            if (doneBlock) {
+                doneBlock(image, diskData, SDImageCacheTypeMemory);
+            }
+            return nil;
         }
-        if (doneBlock) {
-            doneBlock(image, diskData, SDImageCacheTypeMemory);
-        }
-        return nil;
     }
 
     NSOperation *operation = [NSOperation new];
